@@ -1,0 +1,50 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blogs-app
+  labels:
+    app: blogs
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blogs
+  template:
+    metadata:
+      labels:
+        app: blogs
+    spec:
+      containers:
+        - name: blogs-container
+          image: prakashsah10091/blogs:latest
+          ports:
+            - containerPort: 8000
+          env:
+            - name: PYTHONDONTWRITEBYTECODE
+              value: "1"
+            - name: PYTHONUNBUFFERED
+              value: "1"
+          command: ["sh", "-c"]
+          args:
+            - "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "250m"
+            limits:
+              memory: "256Mi"
+              cpu: "500m"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: blogs-service
+spec:
+  selector:
+    app: blogs
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP
